@@ -61,7 +61,8 @@ public class OrbitalState
     [Tooltip("Apoapsis altitude in Megameter")]
     public float ApoapsisAltitude;
 
-
+    [ReadOnly]
+    public GameObject MainInfluencer;
 
 
     // Transformation between Unity and Geocentric coordinate systems.
@@ -84,6 +85,7 @@ public class OrbitalState
 
         /* Orbital elements from state vector - ref: Curtis, H. Section 4.4 */
 
+        MainInfluencer = soi.gameObject;
         LocalPosition = self.transform.position - soi.transform.position;
         Altitude = LocalPosition.magnitude;
         Vector3 v = GFT.MultiplyPoint3x4(RelativeVelocity);

@@ -28,9 +28,13 @@ public class FakeSunlight : MonoBehaviour
     {
         Vector3 sun_dir = PlayerProxy.transform.InverseTransformPoint(Sun.transform.position);
         sun_dir = PlayerHost.transform.TransformDirection(sun_dir.normalized);
+        var q = Quaternion.FromToRotation(Vector3.down, sun_dir);
+        
         float scaledIntensity = main_sun.intensity / (PlayerProxy.transform.position.sqrMagnitude);
+        float scale = 5f * (Sun.transform.localScale.x / PlayerProxy.transform.position.magnitude);
 
         faked_sun.intensity = scaledIntensity * LightDistance * LightDistance;
-        transform.SetPositionAndRotation(sun_dir * LightDistance, Quaternion.identity);
+        transform.localScale = new Vector3(scale,scale,scale);
+        transform.SetPositionAndRotation(sun_dir * LightDistance, q);
     }
 }

@@ -39,7 +39,6 @@ public class CelestialBody : CelestialBodyBase
     }
 
     void Start() {
-        Debug.Log(PhysicsConstant.G);
         isRoot = transform.root.name == this.name;
         Debug.Log(string.Format("{0}:{1}", name, isRoot));
         __start_orbit = true;
@@ -167,7 +166,8 @@ public class CelestialBody : CelestialBodyBase
         foreach (var celestia in this.celestias)
         {
             var referenced = celestia.Frame.Center;
-            Vector3 a_mass = referenced.CalculateAcceleration(this.Frame.Center.Rigid.position);
+            var pred = referenced.transform.position + referenced.Rigid.velocity * Time.fixedDeltaTime;
+            Vector3 a_mass = MassObject.AccelerationBetween(referenced.Mass, pred, Rigid.position);
             // Debug.Log(string.Format("{0} -> {1}: {2}", name, referenced.name, a_mass.normalized));
             // Debug.DrawLine(transform.position, T.MultiplyPoint(a_mass * 4f), Color.red, Time.fixedDeltaTime, false);
             if (a_mass.magnitude > magnitude) {

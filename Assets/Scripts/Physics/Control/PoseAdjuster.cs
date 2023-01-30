@@ -51,12 +51,12 @@ public class PoseAdjuster : PoseControllerBase
         float theta = Mathf.Acos(Vector3.Dot(currp, this.target_direction));
 
         Vector3 cmd_vec = this.controller.Update(new Vector3(theta, 0f, 0f));
-        Vector3 w = (N * -cmd_vec.x) - body.angularVelocity / Time.fixedDeltaTime;
+        Vector3 w = (N * -cmd_vec.x);
         Vector3 e = this.controller.CurrentError;
         
         Vector3 T = WithTorqueKinematics(w);
 
-        if (e.magnitude <= 0.001f || float.IsNaN(Vector3.Dot(T,T))) {
+        if (e.magnitude <= 1e-5f || float.IsNaN(Vector3.Dot(T,T))) {
             IsGoalReached = true;
             return;
         }
