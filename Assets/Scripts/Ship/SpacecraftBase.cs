@@ -52,11 +52,12 @@ public abstract class SpacecraftBase : MonoBehaviour
     protected abstract void onInputEvent(InputEventPtr ptr, InputDevice dev);
 
     protected Vector3 AttitudePrograde() {
-        return craft.CurrentOrbitalState.RelativeVelocity.normalized;
+        return craft.Frame.State.Velocity.normalized;
     }
 
     protected Vector3 AttitudeRetrograde() {
-        return -craft.CurrentOrbitalState.RelativeVelocity.normalized;
+        var q = transform.rotation;
+        return -(craft.Frame.State.Velocity.normalized);
     }
 
     protected Vector3 AttitudeNormal() {
@@ -111,12 +112,16 @@ public abstract class SpacecraftBase : MonoBehaviour
             time = 0;
             DrawTrajectory(true);
         }
-
     }
 
     protected abstract void HandleManeuver();
 
     public Vector3 ToAcceleration(Vector3 F) {
         return F / PhysicsConstant.AbsoluteMass(craft.Mass);
+    }
+
+    public void AddRelativeAcceleration(Vector3 a) {
+        a = body.transform.rotation * a;
+        craft.Solver.AddGlobalAcceleration(a);
     }
 }

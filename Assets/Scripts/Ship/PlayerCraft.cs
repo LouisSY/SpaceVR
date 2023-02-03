@@ -74,7 +74,11 @@ public class PlayerCraft : SpacecraftBase
         Vector3 nrot = rot.normalized;
         nrot.Scale(Kinematics.MaxFlywheelTorque * 1000f / PhysicsConstant.AbsoluteMass(craft.Mass));
         
-        body.AddRelativeForce(Vector3.forward * Kinematics.GetAcceleration(craft), ForceMode.Acceleration);
+        float acc = Kinematics.GetAcceleration(craft);
+        if (acc > float.Epsilon) {
+            Vector3 v = Vector3.forward * acc;
+            AddRelativeAcceleration(v);
+        }
         body.AddRelativeTorque(nrot, ForceMode.VelocityChange);
     }
 

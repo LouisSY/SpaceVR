@@ -5,9 +5,15 @@ using UnityEngine;
 
 public class CelestialBodyBase : MassObject
 {
-    public Vector3 Acceleration { get; protected set; }
+    public IList<CelestialBody> Celestias { get; private set; }
 
-    public CelestialBody SOICenter { get; protected set; }
+    [ReadOnly]
+    public Vector3 Acceleration;
+
+    [ReadOnly]
+    public float AccelerationMagnitude;
+
+    public CelestialBody SOICenter { get; set; }
 
     public bool EnableSimulation;
 
@@ -15,4 +21,34 @@ public class CelestialBodyBase : MassObject
 
     [Header("Info")]
     public OrbitalState CurrentOrbitalState;
+
+    public OrbitalSolverBase Solver { get; set; }
+
+    public bool Anchored = true;
+    public bool IsRoot = false;
+
+    public float SOIRadius = 0f;
+
+    public CelestialBodyBase()
+    {
+        Celestias = new List<CelestialBody>();
+    }
+
+    protected void RegisterBodies() {
+        GameObject[] gos = GameObject.FindGameObjectsWithTag(MassObject.TAG);
+        foreach (var go in gos)
+        {
+            CelestialBody ob;
+            if (go.TryGetComponent<CelestialBody>(out ob)) {
+                if (!ob.EnableSimulation) {
+                    continue;
+                }
+                if (go.name == this.name) {
+                    continue;
+                }
+                Celestias.Add(ob);
+            }
+        }
+    }
+    
 }

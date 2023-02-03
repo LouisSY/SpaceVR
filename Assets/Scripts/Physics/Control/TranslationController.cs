@@ -18,7 +18,7 @@ public class TranslationController : PoseControllerBase
         d.Scale(craft.Kinematics.RCSThrust);
         Vector3 a = craft.ToAcceleration(d);
         currentVel += a * Time.fixedDeltaTime;
-        craft.Body.AddRelativeForce(a, ForceMode.VelocityChange);
+        craft.AddRelativeAcceleration(a);
     }
 
     public void ExertDirectional(Vector3 d) {

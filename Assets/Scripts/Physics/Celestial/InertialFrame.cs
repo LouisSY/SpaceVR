@@ -6,64 +6,69 @@ namespace MyProject.Common {
     public class InertialFrame
     {
         private InertialFrame referencedFrame;
-        private BodyState localState = new BodyState();
-        private BodyState globalState = new BodyState();
-
-        public BodyState LocalState { get => localState; }
-        public BodyState GlobalState { get => globalState; }
+        public BodyState State { get; private set; } = new BodyState();
 
         public CelestialBody Center { get; private set; }
 
+        public InertialFrame Referenced { get => referencedFrame; }
+
         public InertialFrame()
         {
-            
+            referencedFrame = null;
         }
 
         public void AssignCenter(CelestialBody celestia) {
             this.Center = celestia;
-            SyncState();
         }
 
         public void ReferenceTo(InertialFrame frame) {
-            this.referencedFrame = frame;
-            ResetLocal();
+            if (frame.Center.name != Center.name) {
+                this.referencedFrame = frame;
+            }
         }
 
         public void SyncState() {
-            globalState.Position = this.Center.Rigid.position;
-            globalState.Velocity = this.Center.Rigid.velocity;
-            if (this.referencedFrame != null) {
-                ResetLocal();
+            State.Velocity = Center.Rigid.velocity - Center.SOICenter.Rigid.velocity;
+            State.Position = Center.transform.position;
+        }
+
+        public void UpdateState(Vector3 pos, Vector3 vel) {
+            if (vel.IsNan()) {
+                vel = Vector3.zero;
             }
+
+            State.Velocity = vel;
+            State.Position = pos;
         }
 
         public void ApplyAcceleration(Vector3 acceleration, float deltaT) {
-            globalState.Velocity += acceleration * deltaT;
-            globalState.Position += globalState.Velocity * deltaT;
-            
-            UpdateLocal();
-        }
+            State.Velocity += acceleration * deltaT;
+            State.Position += State.Velocity * deltaT;
 
-        public void UpdateLocal() {
-            if (referencedFrame == null) {
-                return;
+            if (State.Velocity.IsNan()) {
+                State.Velocity = Vector3.zero;
             }
-            Vector3 rvel = this.globalState.Velocity - referencedFrame.globalState.Velocity;
-
-            Matrix4x4 TlocalInv = Matrix4x4.Translate(referencedFrame.globalState.Position).inverse;
-            Quaternion RlocalInv = Quaternion.Inverse(referencedFrame.Center.transform.rotation);
-            localState.Velocity = rvel;
-            localState.Position = TlocalInv.MultiplyPoint(RlocalInv * this.globalState.Position);
         }
 
-        public void ResetLocal() {
-            Transform T_frame = referencedFrame.Center.transform;
-            localState.Velocity = Vector3.zero;
-            localState.Position = T_frame.transform.InverseTransformPoint(this.globalState.Position);
+        public void TransformGalilean(ref InertialFrame result, InertialFrame referenced, float T) {
+            result.State.Position = referenced.State.Position + State.Velocity * T; 
+            result.State.Velocity = State.Velocity;
+        }
+
+        public void TransformGlobal(ref InertialFrame result, float T) {
+            result.State.Position = referencedFrame.State.Position + State.Position; 
+            result.State.Velocity = referencedFrame.State.Velocity + State.Velocity;
+        }
+
+        public Vector3 TransformGlobalVelocity() {
+            if (referencedFrame == null) {
+                return State.Velocity;
+            }
+            return referencedFrame.TransformGlobalVelocity() + State.Velocity;
         }
 
         public Vector3 GetRelativeVelocity(InertialFrame otherframe) {
-            return Center.Rigid.velocity - otherframe.Center.Rigid.velocity;
+            return State.Velocity - otherframe.State.Velocity;
         }
     }
 }
