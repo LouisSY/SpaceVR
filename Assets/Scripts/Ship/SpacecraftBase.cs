@@ -121,7 +121,8 @@ public abstract class SpacecraftBase : MonoBehaviour
     }
 
     public void AddRelativeAcceleration(Vector3 a) {
-        a = body.transform.rotation * a;
+        a = transform.rotation * a;
+        Debug.Log(a);
         craft.Solver.AddGlobalAcceleration(a);
     }
 }
